@@ -1,27 +1,60 @@
 import { createClient } from "redis";
 
 const client = await createClient()
-    .on("error", (err) => console.log("Redis Client Error", err))
-    .connect();
+  .on("error", (err) => console.log("Redis Client Error", err))
+  .connect();
 
 type WebsiteEvent = {url: string, id: string}
+type MessageType = {
+    id: string,
+    message: {
+        url: string,
+        id: string
+    }
+    //@ts-ignore
+}
 
-async function xAdd({url, id}: WebsiteEvent){
+const STREAM_NAME = "betteruptime:website";
+
+async function xAdd({url, id}: WebsiteEvent) {
     await client.xAdd(
-        'betteruptime:website', '*', {
+        STREAM_NAME, '*', {
             url,
             id
         }
-      );
-}  
+    );
+}
 
-//Note: doesn't yet send the bulk request just iterates over a for loop,
-//we should fix this 
 export async function xAddBulk(websites: WebsiteEvent[]) {
-    for(const website of websites){
+    for (let i = 0; i < websites.length; i++) {
         await xAdd({
-            url: website.url,
-            id: website.id
+            url: websites[i].url,
+            id: websites[i].id
         })
     }
+}
+
+export async function xReadGroup(consumerGroup: string, workerId: string): Promise<MessageType[] | undefined> {
+    
+    const res = await client.xReadGroup(
+        consumerGroup, workerId, {
+            key: STREAM_NAME,
+            id: '>'
+        }, {
+        'COUNT': 5
+        }
+    );
+
+    //@ts-ignore
+    let messages: MessageType[] | undefined = res?.[0]?.messages;
+
+    return messages;
+}
+
+async function xAck(consumerGroup: string, eventId: string) {
+    await client.xAck(STREAM_NAME, consumerGroup, eventId)
+}
+
+export async function xAckBulk(consumerGroup: string, eventIds: string[]) {
+    eventIds.map(eventId => xAck(consumerGroup, eventId));
 }
