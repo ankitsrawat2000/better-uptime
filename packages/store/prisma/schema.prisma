@@ -44,6 +44,7 @@ model website_tick {
   website     website    @relation(fields: [website_id], references: [id]) //Foreign key to the Website model via website_id.    
   region_id     String
   website_id    String
+  createdAt               DateTime    @default(now())
 }
 
 enum website_status{

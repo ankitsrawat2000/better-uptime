@@ -4,8 +4,10 @@ import { prismaClient } from "store/client";
 import { AuthInput } from "./types";
 import jwt from "jsonwebtoken";
 import { authMiddleware } from "./middleware";
+import cors from "cors";
 
 app.use(express.json());
+app.use(cors());
 
 app.post("/website", authMiddleware, async (req, res) => {
     if (!req.body.url) {
@@ -36,7 +38,7 @@ app.get("/status/:websiteId", authMiddleware, async (req, res) => {
                 orderBy: [{
                     createdAt: 'desc',
                 }],
-                take: 1
+                take: 10 //
             }
         }
     })
@@ -56,13 +58,13 @@ app.get("/status/:websiteId", authMiddleware, async (req, res) => {
 });
 
 app.post("/user/signup", async (req, res) => {
+    console.log("hello");
     const data = AuthInput.safeParse(req.body);
     if (!data.success) {
         console.log(data);
         res.status(403).send("");
         return;
     }
-
     try {
         let user = await prismaClient.user.create({
             data: {
@@ -106,4 +108,24 @@ app.post("/user/signin", async (req, res) => {
 
 });
 
-app.listen(process.env.PORT || 3000);
+app.get("/websites", authMiddleware, async (req, res) => {
+    const websites = await prismaClient.website.findMany({
+        where: {
+            user_id: req.userId
+        },
+        include: {
+            ticks: {
+                orderBy: [{
+                    createdAt: 'desc',
+                }],
+                take: 1
+            }
+        }
+    })
+
+    res.json({
+        websites
+    })
+})
+
+app.listen(process.env.PORT || 3001);

@@ -15,6 +15,7 @@ if (!WORKER_ID) {
 
 async function main() {
     while(1) {
+        //read from the stream
         const response = await xReadGroup(REGION_ID, WORKER_ID);
 
         if (!response) {

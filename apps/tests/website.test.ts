@@ -107,3 +107,38 @@ describe("Can fetch website", () => {
         }
     })
 })
+
+describe("Should we be able to get all websites", () => {
+    let token: string, userId: string;
+
+    beforeAll(async () => {
+        const user1 = await createUser();
+        token = user1.jwt;
+        userId = user1.id;
+    });
+    it("Can fetch its own set of websites", async () => {
+        await axios.post(`${BACKEND_URL}/website`, {
+            url: "https://google.com/"
+        }, {
+            headers: {
+                Authorization: token
+            }
+        })
+
+        await axios.post(`${BACKEND_URL}/website`, {
+            url: "https://google.com/"
+        }, {
+            headers: {
+                Authorization: token
+            }
+        })
+
+        const response = await axios.get(`${BACKEND_URL}/websites`, {
+            headers: {
+                Authorization: token
+            }
+        })
+        expect(response.data.websites.length == 2, "Incorrect no. of websites created")
+        
+    })
+})

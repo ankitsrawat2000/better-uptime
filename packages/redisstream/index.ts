@@ -1,10 +1,10 @@
 import { createClient } from "redis";
 
 const client = await createClient()
-  .on("error", (err) => console.log("Redis Client Error", err))
-  .connect();
+    .on("error", (err) => console.log("Redis Client Error", err))
+    .connect();
 
-type WebsiteEvent = {url: string, id: string}
+type WebsiteEvent = { url: string, id: string }
 type MessageType = {
     id: string,
     message: {
@@ -16,12 +16,12 @@ type MessageType = {
 
 const STREAM_NAME = "betteruptime:website";
 
-async function xAdd({url, id}: WebsiteEvent) {
+async function xAdd({ url, id }: WebsiteEvent) {
     await client.xAdd(
         STREAM_NAME, '*', {
-            url,
-            id
-        }
+        url,
+        id
+    }
     );
 }
 
@@ -35,14 +35,14 @@ export async function xAddBulk(websites: WebsiteEvent[]) {
 }
 
 export async function xReadGroup(consumerGroup: string, workerId: string): Promise<MessageType[] | undefined> {
-    
+
     const res = await client.xReadGroup(
         consumerGroup, workerId, {
-            key: STREAM_NAME,
-            id: '>'
-        }, {
+        key: STREAM_NAME,
+        id: '>'
+    }, {
         'COUNT': 5
-        }
+    }
     );
 
     //@ts-ignore
