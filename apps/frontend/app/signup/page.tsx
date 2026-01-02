@@ -39,11 +39,11 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
         }catch (e) {
             setIsLoading(false);
         }
+    };
 
+    const passwordMatch = password === confirmPassword && password.length > 0;
 
-        const passwordMatch = password === confirmPassword && password.length > 0;
-
-        return (
+    return (
             <div className="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
                 <div className="flex flex-col lg:flex-row min-h-[600px]">
                     {/* Left side - Welcome content */}
@@ -193,6 +193,6 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
                 </div>
             </div>
         );
-    };
-}
-    export default SignUp;
+};
+
+export default SignUp;
